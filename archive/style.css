@@ -98,7 +98,7 @@ h1 {
     cursor: pointer;
 }
 
-/* Hide Google Translate Banner and tooltips */
+/* Hide Google Translate Banner and tooltips (Disabled for debugging)
 .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon {
     display: none !important;
 }
@@ -119,6 +119,7 @@ body {
     border: none !important;
     box-shadow: none !important;
 }
+*/
 
 #theme-btn:hover {
     opacity: 0.8;

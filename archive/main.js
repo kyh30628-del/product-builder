@@ -10,24 +10,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const syncTranslation = (lang) => {
         const googleCombo = document.querySelector('.goog-te-combo');
         if (googleCombo) {
-            googleCombo.value = lang;
-            googleCombo.dispatchEvent(new Event('change'));
-            console.log('Syncing translation to:', lang);
+            if (googleCombo.value !== lang) {
+                googleCombo.value = lang;
+                googleCombo.dispatchEvent(new Event('change', { bubbles: true }));
+                console.log('Syncing translation to:', lang);
+            }
         }
+    };
+
+    const updateDate = (lang) => {
+        const locales = {
+            'en': 'en-US',
+            'ko': 'ko-KR',
+            'ja': 'ja-JP',
+            'es': 'es-ES',
+            'ar': 'ar-SA'
+        };
+        const locale = locales[lang] || 'en-US';
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        currentDateEl.textContent = new Date().toLocaleDateString(locale, options);
     };
 
     langSelector.addEventListener('change', () => {
         const lang = langSelector.value;
         syncTranslation(lang);
+        updateDate(lang);
     });
 
     // Observer to handle Google Translate's late loading
     const observer = new MutationObserver(() => {
         const googleCombo = document.querySelector('.goog-te-combo');
-        if (googleCombo && langSelector.value !== 'en') {
-            syncTranslation(langSelector.value);
-            // We can stop observing once we've successfully found and synced it if we want,
-            // but keeping it active allows for multiple changes if the widget re-renders.
+        if (googleCombo) {
+            const desiredLang = langSelector.value;
+            if (googleCombo.value !== desiredLang) {
+                syncTranslation(desiredLang);
+            }
         }
     });
 
@@ -36,9 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
         subtree: true
     });
 
-    // Set Current Date
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    currentDateEl.textContent = new Date().toLocaleDateString('en-US', options);
+    // Initial check and Date setup
+    updateDate(langSelector.value);
+    syncTranslation(langSelector.value);
 
     // Theme Toggle Logic
     const currentTheme = localStorage.getItem('theme');

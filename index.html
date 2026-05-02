@@ -1,76 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The EPC Industrialist - Engineering & Financial Intelligence</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="newspaper-container">
-        <header class="newspaper-header">
-            <div class="top-bar">
-                <span id="current-date">Saturday, May 2, 2026</span>
-                <span class="edition">Industrial & Financial Report</span>
-                <div class="top-controls">
-                    <select id="lang-selector">
-                        <option value="en">English</option>
-                        <option value="ko">한국어 (KO)</option>
-                        <option value="ja">日本語 (JA)</option>
-                        <option value="es">Español (ES)</option>
-                        <option value="ar">العربية (AR)</option>
-                    </select>
-                    <button id="theme-btn">Dark Mode</button>
-                </div>
-            </div>
-            <h1>The EPC Industrialist</h1>
-            <div class="motto">"Engineering, Procurement, and Construction Intelligence."</div>
-        </header>
-
-        <div class="main-layout">
-            <aside class="sidebar">
-                <section class="vital-signs">
-                    <h2 class="section-title">Industrial Benchmarks</h2>
-                    <div id="data-grid" class="stats-list">
-                        <div class="loading-state">Fetching industrial records...</div>
-                    </div>
-                </section>
-                <section class="about-gazette">
-                    <h2 class="section-title">Industry Standard</h2>
-                    <p>All benchmarks are sourced from the World Bank Commodity Pink Sheet, ensuring 100% factual accuracy for industrial planning and financial analysis.</p>
-                </section>
-            </aside>
-
-            <main class="content-area">
-                <h2 class="section-title">EPC Sector Trends & News</h2>
-                <div id="news-feed" class="news-feed">
-                    <div class="loading-state">Gathering EPC sector reports...</div>
-                </div>
-            </main>
-        </div>
-
-        <footer class="newspaper-footer">
-            <div class="footer-content">
-                <p>&copy; 2026 The EPC Industrialist. Data sourced from World Bank & Industrial News Agencies.</p>
-                <p>Accuracy is prioritized for engineering and financial decision-making.</p>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Google Translate Script (Small but Active) -->
-    <div id="google_translate_element" style="position: fixed; top: 0; left: 0; height: 1px; width: 1px; overflow: hidden; opacity: 0.1; z-index: -1;"></div>
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'en',
-                includedLanguages: 'en,ko,ja,es,ar',
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-    <script src="main.js"></script>
-</body>
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛺</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampNest | 대한민국 캠핑의 모든 것</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
