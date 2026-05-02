@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     themeBtn.addEventListener('click', () => {
+        console.log('Theme toggle clicked');
         body.classList.toggle('dark-mode');
         let theme = 'light';
         if (body.classList.contains('dark-mode')) {
