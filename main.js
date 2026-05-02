@@ -9,11 +9,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Language Selector Logic
     langSelector.addEventListener('change', () => {
         const lang = langSelector.value;
-        const googleCombo = document.querySelector('.goog-te-combo');
-        if (googleCombo) {
-            googleCombo.value = lang;
-            googleCombo.dispatchEvent(new Event('change'));
-        }
+        console.log('Language changed to:', lang);
+        
+        const triggerTranslation = () => {
+            const googleCombo = document.querySelector('.goog-te-combo');
+            if (googleCombo) {
+                googleCombo.value = lang;
+                googleCombo.dispatchEvent(new Event('change'));
+                console.log('Translation triggered for:', lang);
+            } else {
+                console.warn('Google Translate combo box not found. Retrying...');
+                setTimeout(triggerTranslation, 500);
+            }
+        };
+        
+        triggerTranslation();
     });
 
     // Set Current Date
