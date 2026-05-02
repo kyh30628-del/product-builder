@@ -13,7 +13,16 @@
             <div class="top-bar">
                 <span id="current-date">Saturday, May 2, 2026</span>
                 <span class="edition">Industrial & Financial Report</span>
-                <button id="theme-btn">Dark Mode</button>
+                <div class="top-controls">
+                    <select id="lang-selector">
+                        <option value="en">English</option>
+                        <option value="ko">한국어 (KO)</option>
+                        <option value="ja">日本語 (JA)</option>
+                        <option value="es">Español (ES)</option>
+                        <option value="ar">العربية (AR)</option>
+                    </select>
+                    <button id="theme-btn">Dark Mode</button>
+                </div>
             </div>
             <h1>The EPC Industrialist</h1>
             <div class="motto">"Engineering, Procurement, and Construction Intelligence."</div>
@@ -49,6 +58,19 @@
         </footer>
     </div>
 
+    <!-- Google Translate Script (Hidden Container) -->
+    <div id="google_translate_element" style="display:none"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,ko,ja,es,ar',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script src="main.js"></script>
 </body>
 </html>

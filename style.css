@@ -80,16 +80,44 @@ h1 {
     color: var(--text-muted);
 }
 
-#theme-btn {
-    background-color: var(--border-color);
-    border: none;
-    padding: 6px 15px;
+.top-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+#lang-selector {
+    padding: 5px 10px;
     border-radius: 4px;
-    cursor: pointer;
+    border: 1px solid var(--border-color);
+    background-color: var(--container-bg);
+    color: var(--text-color);
     font-family: var(--ui-font);
     font-size: 0.75rem;
-    color: #ffffff;
-    transition: opacity 0.2s ease;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Hide Google Translate Banner and tooltips */
+.goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon {
+    display: none !important;
+}
+body {
+    top: 0 !important;
+}
+.goog-te-menu-value {
+    display: none !important;
+}
+.goog-tooltip {
+    display: none !important;
+}
+.goog-tooltip:hover {
+    display: none !important;
+}
+.goog-text-highlight {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 #theme-btn:hover {

@@ -2,8 +2,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const dataGrid = document.getElementById('data-grid');
     const newsFeed = document.getElementById('news-feed');
     const themeBtn = document.getElementById('theme-btn');
+    const langSelector = document.getElementById('lang-selector');
     const currentDateEl = document.getElementById('current-date');
     const body = document.body;
+
+    // Language Selector Logic
+    langSelector.addEventListener('change', () => {
+        const lang = langSelector.value;
+        const googleCombo = document.querySelector('.goog-te-combo');
+        if (googleCombo) {
+            googleCombo.value = lang;
+            googleCombo.dispatchEvent(new Event('change'));
+        }
+    });
 
     // Set Current Date
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
