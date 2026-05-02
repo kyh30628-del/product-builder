@@ -6,24 +6,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentDateEl = document.getElementById('current-date');
     const body = document.body;
 
-    // Language Selector Logic
+    // Language Selector Logic (Improved with MutationObserver)
+    const syncTranslation = (lang) => {
+        const googleCombo = document.querySelector('.goog-te-combo');
+        if (googleCombo) {
+            googleCombo.value = lang;
+            googleCombo.dispatchEvent(new Event('change'));
+            console.log('Syncing translation to:', lang);
+        }
+    };
+
     langSelector.addEventListener('change', () => {
         const lang = langSelector.value;
-        console.log('Language changed to:', lang);
-        
-        const triggerTranslation = () => {
-            const googleCombo = document.querySelector('.goog-te-combo');
-            if (googleCombo) {
-                googleCombo.value = lang;
-                googleCombo.dispatchEvent(new Event('change'));
-                console.log('Translation triggered for:', lang);
-            } else {
-                console.warn('Google Translate combo box not found. Retrying...');
-                setTimeout(triggerTranslation, 500);
-            }
-        };
-        
-        triggerTranslation();
+        syncTranslation(lang);
+    });
+
+    // Observer to handle Google Translate's late loading
+    const observer = new MutationObserver(() => {
+        const googleCombo = document.querySelector('.goog-te-combo');
+        if (googleCombo && langSelector.value !== 'en') {
+            syncTranslation(langSelector.value);
+            // We can stop observing once we've successfully found and synced it if we want,
+            // but keeping it active allows for multiple changes if the widget re-renders.
+        }
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
     });
 
     // Set Current Date
