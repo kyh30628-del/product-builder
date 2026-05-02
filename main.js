@@ -28,20 +28,20 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('theme', theme);
     });
 
-    // World Bank Indicators Configuration
+    // EPC Industrial Indicators Configuration (World Bank)
     const indicators = [
-        { id: 'SP.POP.TOTL', title: 'Global Population', type: 'number' },
-        { id: 'NY.GDP.MKTP.KD.ZG', title: 'GDP Growth', type: 'percent' },
-        { id: 'SP.DYN.LE00.IN', title: 'Life Expectancy', type: 'years' },
-        { id: 'SI.POV.DDAY', title: 'Poverty Rate', type: 'percent' },
-        { id: 'EN.ATM.CO2E.PC', title: 'CO2 Emissions', type: 'decimal' },
-        { id: 'SE.ADT.LITR.ZS', title: 'Literacy Rate', type: 'percent' }
+        { id: 'POILWTI', title: 'Crude Oil (WTI)', type: 'currency_bbl', desc: 'US dollars per barrel' },
+        { id: 'PCOPP', title: 'Copper Price', type: 'currency_mt', desc: 'US dollars per metric ton' },
+        { id: 'PSTEL', title: 'Steel Index', type: 'index', desc: 'Steel products price index' },
+        { id: 'PNGASEU', title: 'Natural Gas (EU)', type: 'currency_mmbtu', desc: 'US dollars per MMBtu' },
+        { id: 'EG.ELC.RNEW.ZS', title: 'Renewable Energy', type: 'percent', desc: '% of total electricity output' },
+        { id: 'PALLMNG', title: 'Aluminum Index', type: 'index', desc: 'Aluminum price index' }
     ];
 
     async function fetchIndicatorData(indicatorId) {
         try {
-            // Fetching global data (region: WLD) for multiple years to ensure we get a non-null value
-            const response = await fetch(`https://api.worldbank.org/v2/country/WLD/indicator/${indicatorId}?format=json&per_page=10`);
+            // Fetching global commodity data for multiple years
+            const response = await fetch(`https://api.worldbank.org/v2/indicator/${indicatorId}?format=json&per_page=12`);
             const data = await response.json();
             
             if (data && data[1]) {
@@ -59,13 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (value === null || value === undefined) return 'N/A';
         const numValue = parseFloat(value);
         switch (type) {
-            case 'number':
-                if (numValue >= 1000000000) return (numValue / 1000000000).toFixed(2) + ' B';
-                if (numValue >= 1000000) return (numValue / 1000000).toFixed(2) + ' M';
-                return numValue.toLocaleString();
+            case 'currency_bbl': return '$' + numValue.toFixed(2) + ' /bbl';
+            case 'currency_mt': return '$' + Math.round(numValue).toLocaleString() + ' /mt';
+            case 'currency_mmbtu': return '$' + numValue.toFixed(2) + ' /mmbtu';
+            case 'index': return numValue.toFixed(2) + ' pts';
             case 'percent': return numValue.toFixed(2) + '%';
-            case 'years': return numValue.toFixed(1) + ' Yrs';
-            case 'decimal': return numValue.toFixed(2);
             default: return numValue.toString();
         }
     }
@@ -74,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = document.createElement('div');
         item.classList.add('stat-item');
         const value = data ? formatValue(data.value, indicator.type) : 'N/A';
-        const year = data ? `As of ${data.date}` : 'No recent records';
+        const year = data ? `Latest Record: ${data.date}` : 'Awaiting data...';
         item.innerHTML = `
             <div class="stat-title">${indicator.title}</div>
             <div class="stat-value">${value}</div>
@@ -87,8 +85,23 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('https://ok.surf/api/v1/cors/news-feed');
             const data = await response.json();
-            // Combine World, Business, and Science news
-            return [...(data.World || []), ...(data.Business || []), ...(data.Science || [])].slice(0, 10);
+            
+            // Filter and prioritize news related to EPC and Industry
+            const combinedNews = [
+                ...(data.Business || []),
+                ...(data.Science || []),
+                ...(data.World || [])
+            ];
+
+            const epcKeywords = ['hydrogen', 'lng', 'carbon', 'modular', 'epc', 'infrastructure', 'offshore', 'energy', 'oil', 'gas', 'construction', 'engineering'];
+            
+            const filteredNews = combinedNews.filter(article => {
+                const title = article.title.toLowerCase();
+                return epcKeywords.some(keyword => title.includes(keyword));
+            });
+
+            // If filtering results in too few articles, just use top business news
+            return filteredNews.length >= 5 ? filteredNews.slice(0, 10) : combinedNews.slice(0, 10);
         } catch (error) {
             console.error('Error fetching news:', error);
             return [];
@@ -99,21 +112,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = document.createElement('article');
         item.classList.add('news-item');
         item.innerHTML = `
-            <div class="news-meta">${article.source || 'Global Report'}</div>
+            <div class="news-meta">${article.source || 'Industrial Report'}</div>
             <h3 class="news-title"><a href="${article.link}" target="_blank">${article.title}</a></h3>
-            <p class="news-description">${article.title.substring(0, 100)}...</p>
+            <p class="news-description">${article.title.substring(0, 120)}...</p>
         `;
         return item;
     }
 
-    async function initGazette() {
-        // Fetch Stats
+    async function initIndustrialist() {
         const statPromises = indicators.map(async (indicator) => {
             const data = await fetchIndicatorData(indicator.id);
             return { indicator, data };
         });
 
-        // Fetch News
         const newsPromise = fetchNews();
 
         const [statResults, newsArticles] = await Promise.all([
@@ -121,22 +132,20 @@ document.addEventListener('DOMContentLoaded', () => {
             newsPromise
         ]);
 
-        // Render Stats
         dataGrid.innerHTML = '';
         statResults.forEach(({ indicator, data }) => {
             dataGrid.appendChild(createStatItem(indicator, data));
         });
 
-        // Render News
         newsFeed.innerHTML = '';
         if (newsArticles.length > 0) {
             newsArticles.forEach(article => {
                 newsFeed.appendChild(createNewsItem(article));
             });
         } else {
-            newsFeed.innerHTML = '<div class="loading-state">News temporarily unavailable. Please check back later.</div>';
+            newsFeed.innerHTML = '<div class="loading-state">EPC news feed temporarily unavailable.</div>';
         }
     }
 
-    initGazette();
+    initIndustrialist();
 });
