@@ -1,7 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     const dataGrid = document.getElementById('data-grid');
+    const newsFeed = document.getElementById('news-feed');
     const themeBtn = document.getElementById('theme-btn');
+    const currentDateEl = document.getElementById('current-date');
     const body = document.body;
+
+    // Set Current Date
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    currentDateEl.textContent = new Date().toLocaleDateString('en-US', options);
 
     // Theme Toggle Logic
     const currentTheme = localStorage.getItem('theme');
@@ -24,22 +30,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // World Bank Indicators Configuration
     const indicators = [
-        { id: 'SP.POP.TOTL', title: 'Global Population', description: 'Total world population based on the latest census and surveys.', type: 'number' },
-        { id: 'NY.GDP.MKTP.KD.ZG', title: 'GDP Growth', description: 'Annual percentage growth rate of GDP at market prices.', type: 'percent' },
-        { id: 'SP.DYN.LE00.IN', title: 'Life Expectancy', description: 'Average number of years a newborn is expected to live.', type: 'years' },
-        { id: 'SI.POV.DDAY', title: 'Poverty Rate', description: 'Percentage of population living on less than $2.15 a day.', type: 'percent' },
-        { id: 'EN.ATM.CO2E.PC', title: 'CO2 Emissions', description: 'Metric tons of carbon dioxide per capita.', type: 'decimal' },
-        { id: 'SE.ADT.LITR.ZS', title: 'Literacy Rate', description: 'Percentage of people aged 15 and above who can read and write.', type: 'percent' }
+        { id: 'SP.POP.TOTL', title: 'Global Population', type: 'number' },
+        { id: 'NY.GDP.MKTP.KD.ZG', title: 'GDP Growth', type: 'percent' },
+        { id: 'SP.DYN.LE00.IN', title: 'Life Expectancy', type: 'years' },
+        { id: 'SI.POV.DDAY', title: 'Poverty Rate', type: 'percent' },
+        { id: 'EN.ATM.CO2E.PC', title: 'CO2 Emissions', type: 'decimal' },
+        { id: 'SE.ADT.LITR.ZS', title: 'Literacy Rate', type: 'percent' }
     ];
 
     async function fetchIndicatorData(indicatorId) {
         try {
-            // Fetching global data (region: WLD) for the latest available year
-            const response = await fetch(`https://api.worldbank.org/v2/country/1W/indicator/${indicatorId}?format=json&per_page=1`);
+            // Fetching global data (region: WLD) for multiple years to ensure we get a non-null value
+            const response = await fetch(`https://api.worldbank.org/v2/country/WLD/indicator/${indicatorId}?format=json&per_page=10`);
             const data = await response.json();
             
-            if (data && data[1] && data[1][0]) {
-                return data[1][0];
+            if (data && data[1]) {
+                const validRecord = data[1].find(record => record.value !== null);
+                return validRecord || null;
             }
             return null;
         } catch (error) {
@@ -50,58 +57,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function formatValue(value, type) {
         if (value === null || value === undefined) return 'N/A';
-        
         const numValue = parseFloat(value);
-        
         switch (type) {
             case 'number':
-                if (numValue >= 1000000000) return (numValue / 1000000000).toFixed(2) + ' Billion';
-                if (numValue >= 1000000) return (numValue / 1000000).toFixed(2) + ' Million';
+                if (numValue >= 1000000000) return (numValue / 1000000000).toFixed(2) + ' B';
+                if (numValue >= 1000000) return (numValue / 1000000).toFixed(2) + ' M';
                 return numValue.toLocaleString();
-            case 'percent':
-                return numValue.toFixed(2) + '%';
-            case 'years':
-                return numValue.toFixed(1) + ' Years';
-            case 'decimal':
-                return numValue.toFixed(2);
-            default:
-                return numValue.toString();
+            case 'percent': return numValue.toFixed(2) + '%';
+            case 'years': return numValue.toFixed(1) + ' Yrs';
+            case 'decimal': return numValue.toFixed(2);
+            default: return numValue.toString();
         }
     }
 
-    function createCard(indicator, data) {
-        const card = document.createElement('div');
-        card.classList.add('card');
-        
-        const value = data ? formatValue(data.value, indicator.type) : 'Data Unavailable';
-        const year = data ? `Latest Data: ${data.date}` : '';
-        
-        card.innerHTML = `
-            <div class="card-title">${indicator.title}</div>
-            <div class="card-value">${value}</div>
-            <div class="card-year">${year}</div>
-            <div class="card-description">${indicator.description}</div>
+    function createStatItem(indicator, data) {
+        const item = document.createElement('div');
+        item.classList.add('stat-item');
+        const value = data ? formatValue(data.value, indicator.type) : 'N/A';
+        const year = data ? `As of ${data.date}` : 'No recent records';
+        item.innerHTML = `
+            <div class="stat-title">${indicator.title}</div>
+            <div class="stat-value">${value}</div>
+            <div class="stat-year">${year}</div>
         `;
-        
-        return card;
+        return item;
     }
 
-    async function initDashboard() {
-        dataGrid.innerHTML = '<div class="loading-state">Fetching global records from World Bank...</div>';
-        
-        const fetchPromises = indicators.map(async (indicator) => {
+    async function fetchNews() {
+        try {
+            const response = await fetch('https://ok.surf/api/v1/cors/news-feed');
+            const data = await response.json();
+            // Combine World, Business, and Science news
+            return [...(data.World || []), ...(data.Business || []), ...(data.Science || [])].slice(0, 10);
+        } catch (error) {
+            console.error('Error fetching news:', error);
+            return [];
+        }
+    }
+
+    function createNewsItem(article) {
+        const item = document.createElement('article');
+        item.classList.add('news-item');
+        item.innerHTML = `
+            <div class="news-meta">${article.source || 'Global Report'}</div>
+            <h3 class="news-title"><a href="${article.link}" target="_blank">${article.title}</a></h3>
+            <p class="news-description">${article.title.substring(0, 100)}...</p>
+        `;
+        return item;
+    }
+
+    async function initGazette() {
+        // Fetch Stats
+        const statPromises = indicators.map(async (indicator) => {
             const data = await fetchIndicatorData(indicator.id);
             return { indicator, data };
         });
 
-        const results = await Promise.all(fetchPromises);
-        
+        // Fetch News
+        const newsPromise = fetchNews();
+
+        const [statResults, newsArticles] = await Promise.all([
+            Promise.all(statPromises),
+            newsPromise
+        ]);
+
+        // Render Stats
         dataGrid.innerHTML = '';
-        results.forEach(({ indicator, data }) => {
-            const card = createCard(indicator, data);
-            dataGrid.appendChild(card);
+        statResults.forEach(({ indicator, data }) => {
+            dataGrid.appendChild(createStatItem(indicator, data));
         });
+
+        // Render News
+        newsFeed.innerHTML = '';
+        if (newsArticles.length > 0) {
+            newsArticles.forEach(article => {
+                newsFeed.appendChild(createNewsItem(article));
+            });
+        } else {
+            newsFeed.innerHTML = '<div class="loading-state">News temporarily unavailable. Please check back later.</div>';
+        }
     }
 
-    initDashboard();
+    initGazette();
 });
