@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Truck, Users, Gauge, Bed, Wifi, Zap, ChevronRight, Star, MapPin, Calendar, Thermometer, Coffee, Tv } from 'lucide-react';
+import { Truck, Users, Bed, Zap, Calendar, Thermometer, Coffee, Tv } from 'lucide-react';
+import { ToastFn } from '../App';
 
 interface Caravan {
   id: number;
@@ -170,7 +171,7 @@ const featureIcons: Record<string, React.ReactNode> = {
   '간이주방': <Coffee size={13} />,
 };
 
-export default function CaravanSection() {
+export default function CaravanSection({ onToast, onStartQuiz }: { onToast?: ToastFn; onStartQuiz?: () => void }) {
   const [activeType, setActiveType] = useState('전체');
   const [selectedCaravan, setSelectedCaravan] = useState<number | null>(null);
 
@@ -405,11 +406,19 @@ export default function CaravanSection() {
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-outline" style={{ flex: 1, fontSize: '13px', padding: '10px' }}>
+                    <button
+                      className="btn btn-outline"
+                      style={{ flex: 1, fontSize: '13px', padding: '10px' }}
+                      onClick={e => { e.stopPropagation(); onToast?.(`${caravan.name} 상세 페이지로 이동합니다!`, 'info'); }}
+                    >
                       상세 보기
                     </button>
                     {caravan.isRentable && (
-                      <button className="btn btn-sunset" style={{ flex: 1, fontSize: '13px', padding: '10px', gap: '5px' }}>
+                      <button
+                        className="btn btn-sunset"
+                        style={{ flex: 1, fontSize: '13px', padding: '10px', gap: '5px' }}
+                        onClick={e => { e.stopPropagation(); onToast?.(`${caravan.name} 렌탈 예약이 완료되었습니다! 🎉`, 'success'); }}
+                      >
                         <Calendar size={14} />
                         렌탈 예약
                       </button>
@@ -455,11 +464,28 @@ export default function CaravanSection() {
               💡 카라반 입문 가이드
             </div>
             <h3 style={{ color: 'white', fontSize: 'clamp(22px, 3vw, 32px)', textAlign: 'center', marginBottom: '12px' }}>
-              카라반 처음이세요?
+              나에게 맞는 카라반·캠핑카는?
             </h3>
-            <p style={{ color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginBottom: '36px', fontSize: '15px', lineHeight: 1.7 }}>
-              카라반 선택부터 운전 팁, 캠핑장 예약까지 전문가가 알려드립니다
+            <p style={{ color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginBottom: '24px', fontSize: '15px', lineHeight: 1.7 }}>
+              인원·예산·스타일에 맞는 카라반·캠핑카를 1분 만에 추천해드립니다
             </p>
+            <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+              <button
+                onClick={() => onStartQuiz?.()}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  padding: '14px 32px', borderRadius: 'var(--radius-lg)',
+                  background: 'linear-gradient(135deg, var(--sage), var(--mint))',
+                  color: 'white', fontSize: '15px', fontWeight: 700,
+                  boxShadow: '0 4px 20px rgba(74,138,98,0.4)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 28px rgba(74,138,98,0.5)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 20px rgba(74,138,98,0.4)'; }}
+              >
+                ✨ 맞춤 추천 받기
+              </button>
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
               {[
@@ -478,6 +504,7 @@ export default function CaravanSection() {
                     transition: 'all 0.25s',
                     cursor: 'pointer',
                   }}
+                  onClick={() => onToast?.(`${tip.title} 가이드를 준비 중입니다!`, 'info')}
                   onMouseEnter={e => {
                     (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)';
                     (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)';

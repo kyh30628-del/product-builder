@@ -1,23 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Search, ChevronDown, Tent, MapPin, Truck, Star, ShoppingBag } from 'lucide-react';
+import { Menu, X, Tent, Truck, Star, Sparkles } from 'lucide-react';
+import { ToastFn } from '../App';
 
 interface HeaderProps {
   activeSection: string;
   onNavigate: (section: string) => void;
+  onToast: ToastFn;
+  onStartQuiz: () => void;
 }
 
 const navItems = [
-  { id: 'spots', label: '캠핑 스팟', icon: <MapPin size={15} /> },
   { id: 'equipment', label: '장비 가이드', icon: <Tent size={15} /> },
-  { id: 'products', label: '용품 샵', icon: <ShoppingBag size={15} /> },
   { id: 'caravans', label: '카라반·캠핑카', icon: <Truck size={15} /> },
-  { id: 'reviews', label: '커뮤니티 후기', icon: <Star size={15} /> },
+  { id: 'reviews', label: '캠핑 후기', icon: <Star size={15} /> },
 ];
 
-export default function Header({ activeSection, onNavigate }: HeaderProps) {
+export default function Header({ activeSection, onNavigate, onToast, onStartQuiz }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+
+  const handleLogin = () => {
+    setLoginOpen(false);
+    setLoginEmail('');
+    setLoginPassword('');
+    onToast('로그인 기능은 현재 준비 중입니다. 곧 서비스됩니다! 🚀', 'info');
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -132,38 +142,27 @@ export default function Header({ activeSection, onNavigate }: HeaderProps) {
           {/* Right actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
             <button
-              onClick={() => setSearchOpen(!searchOpen)}
+              onClick={() => setLoginOpen(true)}
               style={{
-                width: '38px',
-                height: '38px',
+                padding: '9px 20px',
                 borderRadius: 'var(--radius-md)',
-                background: scrolled ? 'rgba(74,138,98,0.08)' : 'rgba(255,255,255,0.15)',
-                color: scrolled ? 'var(--forest-mid)' : 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                background: scrolled ? 'transparent' : 'rgba(255,255,255,0.15)',
+                color: scrolled ? 'var(--text-secondary)' : 'white',
+                border: scrolled ? '1.5px solid var(--border)' : '1.5px solid rgba(255,255,255,0.4)',
+                fontSize: '14px',
+                fontWeight: 600,
                 transition: 'all 0.2s',
+                cursor: 'pointer',
               }}
+              className="hide-mobile"
             >
-              <Search size={18} />
-            </button>
-
-            <button style={{
-              padding: '9px 20px',
-              borderRadius: 'var(--radius-md)',
-              background: scrolled ? 'transparent' : 'rgba(255,255,255,0.15)',
-              color: scrolled ? 'var(--text-secondary)' : 'white',
-              border: scrolled ? '1.5px solid var(--border)' : '1.5px solid rgba(255,255,255,0.4)',
-              fontSize: '14px',
-              fontWeight: 600,
-              transition: 'all 0.2s',
-            }} className="hide-mobile">
               로그인
             </button>
 
             <button
-              onClick={() => handleNav('spots')}
+              onClick={onStartQuiz}
               style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
                 padding: '9px 20px',
                 borderRadius: 'var(--radius-md)',
                 background: 'linear-gradient(135deg, var(--forest-mid), var(--sage))',
@@ -183,7 +182,8 @@ export default function Header({ activeSection, onNavigate }: HeaderProps) {
               }}
               className="hide-mobile"
             >
-              스팟 찾기
+              <Sparkles size={14} />
+              맞춤 추천
             </button>
 
             {/* Mobile menu button */}
@@ -206,50 +206,6 @@ export default function Header({ activeSection, onNavigate }: HeaderProps) {
           </div>
         </div>
 
-        {/* Search bar dropdown */}
-        {searchOpen && (
-          <div style={{
-            borderTop: '1px solid var(--border-light)',
-            background: 'rgba(255,255,255,0.95)',
-            backdropFilter: 'blur(20px)',
-            padding: '16px 24px',
-            animation: 'fadeIn 0.2s ease',
-          }}>
-            <div className="container">
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                background: 'var(--sand-light)',
-                border: '1.5px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 18px',
-              }}>
-                <Search size={18} color="var(--text-muted)" />
-                <input
-                  autoFocus
-                  placeholder="캠핑장, 장비, 제품 검색..."
-                  style={{
-                    flex: 1,
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '15px',
-                    color: 'var(--text-body)',
-                    outline: 'none',
-                  }}
-                />
-                <button onClick={() => setSearchOpen(false)} style={{ background: 'none', color: 'var(--text-muted)' }}>
-                  <X size={18} />
-                </button>
-              </div>
-              <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-                {['설악산 캠핑장', '글램핑', '겨울 침낭', '카라반 렌탈', '1인 텐트'].map(q => (
-                  <button key={q} className="tag" style={{ cursor: 'pointer', fontSize: '13px' }}>{q}</button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Mobile menu */}
@@ -293,8 +249,13 @@ export default function Header({ activeSection, onNavigate }: HeaderProps) {
             </button>
           ))}
           <div style={{ flex: 1 }} />
-          <button className="btn btn-primary btn-lg" style={{ width: '100%' }}>
-            무료로 시작하기
+          <button
+            className="btn btn-primary btn-lg"
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            onClick={() => { setMobileOpen(false); onStartQuiz(); }}
+          >
+            <Sparkles size={16} />
+            맞춤 추천 받기
           </button>
         </div>
       )}
@@ -311,6 +272,117 @@ export default function Header({ activeSection, onNavigate }: HeaderProps) {
           .show-mobile { display: flex !important; }
         }
       `}</style>
+
+      {/* Login Modal */}
+      {loginOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: 'fadeIn 0.2s ease',
+          }}
+          onClick={() => setLoginOpen(false)}
+        >
+          <div
+            style={{
+              background: 'white', borderRadius: '24px',
+              padding: '40px', width: '100%', maxWidth: '420px', margin: '20px',
+              animation: 'scaleIn 0.25s var(--ease-spring)',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '24px' }}>⛺</span>
+                <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--forest)' }}>CampNest 로그인</h2>
+              </div>
+              <button
+                onClick={() => setLoginOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                이메일
+              </label>
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={e => setLoginEmail(e.target.value)}
+                placeholder="example@email.com"
+                style={{
+                  width: '100%', padding: '12px 16px',
+                  border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)',
+                  fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+                  boxSizing: 'border-box', transition: 'border-color 0.2s',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--sage)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              />
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                비밀번호
+              </label>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={e => setLoginPassword(e.target.value)}
+                placeholder="비밀번호 입력"
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                style={{
+                  width: '100%', padding: '12px 16px',
+                  border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)',
+                  fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+                  boxSizing: 'border-box', transition: 'border-color 0.2s',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--sage)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              />
+            </div>
+
+            <button
+              onClick={handleLogin}
+              style={{
+                width: '100%', padding: '14px',
+                background: 'linear-gradient(135deg, var(--forest-mid), var(--sage))',
+                color: 'white', borderRadius: 'var(--radius-md)',
+                fontSize: '15px', fontWeight: 700,
+                boxShadow: '0 4px 16px rgba(44,88,64,0.35)',
+                border: 'none', cursor: 'pointer', marginBottom: '14px',
+                transition: 'transform 0.2s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              로그인
+            </button>
+
+            <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
+              계정이 없으신가요?{' '}
+              <button
+                onClick={() => {
+                  setLoginOpen(false);
+                  onToast('회원가입 기능은 현재 준비 중입니다. 곧 서비스됩니다! 🎉', 'info');
+                }}
+                style={{
+                  background: 'none', border: 'none',
+                  color: 'var(--forest-mid)', fontWeight: 700,
+                  cursor: 'pointer', fontSize: '13px',
+                }}
+              >
+                회원가입
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

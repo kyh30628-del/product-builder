@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Star, ShoppingCart, Heart, ChevronRight, Package } from 'lucide-react';
+import { ShoppingCart, Heart, ChevronRight, Package } from 'lucide-react';
+import { ToastFn } from '../App';
 
 interface Equipment {
   id: number;
@@ -164,7 +165,7 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export default function EquipmentSection() {
+export default function EquipmentSection({ onToast, onStartQuiz }: { onToast?: ToastFn; onStartQuiz?: () => void }) {
   const [activeCategory, setActiveCategory] = useState('전체');
   const [likedItems, setLikedItems] = useState<Set<number>>(new Set());
 
@@ -356,6 +357,7 @@ export default function EquipmentSection() {
                   <button
                     className="btn btn-primary btn-sm"
                     style={{ gap: '5px', padding: '8px 14px' }}
+                    onClick={() => onToast?.(`${item.name}을(를) 장바구니에 담았습니다! 🛒`, 'success')}
                   >
                     <ShoppingCart size={13} />
                     구매
@@ -373,12 +375,13 @@ export default function EquipmentSection() {
           gap: '20px',
         }}>
           {[
-            { emoji: '🎯', title: '입문자 필수 장비 세트', desc: '처음 캠핑을 시작하는 분들을 위한 전문가 추천 장비 세트', color: 'var(--sky-light)', accent: '#1A5880' },
-            { emoji: '🏔️', title: '백패킹 경량화 세팅', desc: '산악 백패킹을 위한 초경량 장비 조합 가이드', color: 'rgba(74,138,98,0.08)', accent: 'var(--forest-mid)' },
-            { emoji: '✨', title: '감성 글램핑 아이템', desc: '인스타 감성 캠핑을 위한 프리미엄 아이템 컬렉션', color: 'var(--amber-light)', accent: '#9A6800' },
+            { emoji: '🎯', title: '나에게 맞는 장비 추천', desc: '5가지 질문으로 스타일·예산에 맞는 최적 장비를 AI가 추천해드립니다', color: 'var(--sky-light)', accent: '#1A5880', cta: true },
+            { emoji: '🏔️', title: '백패킹 경량화 세팅', desc: '산악 백패킹을 위한 초경량 장비 조합 가이드', color: 'rgba(74,138,98,0.08)', accent: 'var(--forest-mid)', cta: false },
+            { emoji: '✨', title: '감성 글램핑 아이템', desc: '인스타 감성 캠핑을 위한 프리미엄 아이템 컬렉션', color: 'var(--amber-light)', accent: '#9A6800', cta: false },
           ].map((item, i) => (
             <div
               key={i}
+              onClick={() => item.cta ? onStartQuiz?.() : onToast?.(`${item.title} 가이드를 준비 중입니다!`, 'info')}
               style={{
                 background: item.color,
                 borderRadius: 'var(--radius-lg)',
@@ -411,7 +414,7 @@ export default function EquipmentSection() {
                 fontWeight: 700,
                 color: item.accent,
               }}>
-                가이드 보기 <ChevronRight size={14} />
+                {item.cta ? '추천 받기' : '가이드 보기'} <ChevronRight size={14} />
               </div>
             </div>
           ))}

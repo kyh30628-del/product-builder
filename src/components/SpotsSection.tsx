@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { MapPin, Star, Heart, Wifi, Zap, Droplets, Flame, ChevronRight, Filter, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Heart, Wifi, Zap, Droplets, Flame, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { ToastFn } from '../App';
+
+export interface SearchFilter { query: string; type: string; region: string; }
 
 interface Spot {
   id: number;
@@ -161,16 +164,40 @@ const amenityIcons: Record<string, React.ReactNode> = {
   '와이파이': <Wifi size={13} />,
 };
 
-export default function SpotsSection() {
+export default function SpotsSection({
+  searchFilter,
+  onToast,
+}: {
+  searchFilter?: SearchFilter;
+  onToast?: ToastFn;
+}) {
   const [activeRegion, setActiveRegion] = useState('전체');
   const [activeType, setActiveType] = useState('전체');
   const [liked, setLiked] = useState<Set<number>>(new Set());
   const [showAll, setShowAll] = useState(false);
 
+  useEffect(() => {
+    if (!searchFilter) return;
+    if (searchFilter.region) {
+      const matched = regionFilters.find(r => r === searchFilter.region);
+      setActiveRegion(matched || '전체');
+    }
+    if (searchFilter.type) {
+      const typeMap: Record<string, string> = { '글램핑': '글램핑', '카라반': '카라반', '캠핑카': '카라반' };
+      setActiveType(typeMap[searchFilter.type] || '전체');
+    }
+  }, [searchFilter]);
+
   const filtered = spots.filter(s => {
     const regionOk = activeRegion === '전체' || s.region === activeRegion;
     const typeOk = activeType === '전체' || s.type === activeType;
-    return regionOk && typeOk;
+    const q = searchFilter?.query?.trim().toLowerCase() || '';
+    const queryOk = !q ||
+      s.name.toLowerCase().includes(q) ||
+      s.location.toLowerCase().includes(q) ||
+      s.tags.some(t => t.toLowerCase().includes(q)) ||
+      s.description.toLowerCase().includes(q);
+    return regionOk && typeOk && queryOk;
   });
 
   const displayed = showAll ? filtered : filtered.slice(0, 6);
@@ -402,7 +429,11 @@ export default function SpotsSection() {
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>~</span>
                     </div>
                   </div>
-                  <button className="btn btn-primary btn-sm" style={{ gap: '6px' }}>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    style={{ gap: '6px' }}
+                    onClick={() => onToast?.(`${spot.name} 예약 페이지로 이동합니다!`, 'success')}
+                  >
                     예약하기
                     <ChevronRight size={14} />
                   </button>
@@ -464,18 +495,23 @@ export default function SpotsSection() {
               전국 캠핑장을 지도에서 직접 확인하고<br />내 위치 주변 최적의 스팟을 발견하세요
             </p>
           </div>
-          <button className="btn" style={{
-            padding: '14px 32px',
-            background: 'rgba(255,255,255,0.15)',
-            border: '1.5px solid rgba(255,255,255,0.35)',
-            color: 'white',
-            fontSize: '15px',
-            fontWeight: 700,
-            borderRadius: 'var(--radius-lg)',
-            backdropFilter: 'blur(8px)',
-            transition: 'all 0.2s',
-            whiteSpace: 'nowrap',
-          }}>
+          <button
+            className="btn"
+            onClick={() => onToast?.('지도 서비스는 준비 중입니다. 곧 만나요! 🗺️', 'info')}
+            style={{
+              padding: '14px 32px',
+              background: 'rgba(255,255,255,0.15)',
+              border: '1.5px solid rgba(255,255,255,0.35)',
+              color: 'white',
+              fontSize: '15px',
+              fontWeight: 700,
+              borderRadius: 'var(--radius-lg)',
+              backdropFilter: 'blur(8px)',
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+            }}
+          >
             지도로 보기 →
           </button>
         </div>
