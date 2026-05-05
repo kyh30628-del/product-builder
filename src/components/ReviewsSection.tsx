@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ThumbsUp, MessageSquare, Star, Camera, Filter, TrendingUp, Award, Users } from 'lucide-react';
+import { ThumbsUp, MessageSquare, X } from 'lucide-react';
+import { ToastFn } from '../App';
 
 interface Review {
   id: number;
@@ -146,9 +147,17 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export default function ReviewsSection() {
+export default function ReviewsSection({ onToast }: { onToast?: ToastFn }) {
   const [activeFilter, setActiveFilter] = useState('전체');
   const [likedReviews, setLikedReviews] = useState<Set<number>>(new Set());
+  const [writeOpen, setWriteOpen] = useState(false);
+  const [expandedReview, setExpandedReview] = useState<number | null>(null);
+  const [reviewForm, setReviewForm] = useState({
+    spotName: '',
+    rating: 5,
+    title: '',
+    content: '',
+  });
 
   const filtered = activeFilter === '전체'
     ? reviews
@@ -162,7 +171,22 @@ export default function ReviewsSection() {
     });
   };
 
+  const handleWriteSubmit = () => {
+    if (!reviewForm.spotName.trim()) {
+      onToast?.('캠핑장 이름을 입력해주세요.', 'error');
+      return;
+    }
+    if (!reviewForm.content.trim()) {
+      onToast?.('후기 내용을 입력해주세요.', 'error');
+      return;
+    }
+    setWriteOpen(false);
+    setReviewForm({ spotName: '', rating: 5, title: '', content: '' });
+    onToast?.('후기가 성공적으로 등록되었습니다! 감사합니다 🎉', 'success');
+  };
+
   return (
+    <>
     <section id="reviews" className="section">
       <div className="container">
         {/* Header */}
@@ -407,10 +431,12 @@ export default function ReviewsSection() {
                 color: 'var(--text-secondary)',
                 lineHeight: 1.7,
                 marginBottom: '14px',
-                display: '-webkit-box',
-                WebkitLineClamp: 4,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
+                ...(expandedReview !== review.id ? {
+                  display: '-webkit-box',
+                  WebkitLineClamp: 4,
+                  WebkitBoxOrient: 'vertical' as const,
+                  overflow: 'hidden',
+                } : {}),
               }}>
                 {review.content}
               </p>
@@ -451,18 +477,21 @@ export default function ReviewsSection() {
                   <ThumbsUp size={13} />
                   도움돼요 {review.likes + (likedReviews.has(review.id) ? 1 : 0)}
                 </button>
-                <button style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                }}>
+                <button
+                  onClick={() => setExpandedReview(expandedReview === review.id ? null : review.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                  }}
+                >
                   <MessageSquare size={13} />
-                  전체 보기
+                  {expandedReview === review.id ? '접기' : '전체 보기'}
                 </button>
               </div>
             </div>
@@ -501,29 +530,199 @@ export default function ReviewsSection() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
-            <button className="btn btn-ghost btn-lg">
+            <button
+              className="btn btn-ghost btn-lg"
+              onClick={() => onToast?.('전체 후기 목록은 준비 중입니다!', 'info')}
+            >
               후기 보기
             </button>
-            <button style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '14px 28px',
-              borderRadius: 'var(--radius-lg)',
-              background: 'white',
-              color: 'var(--forest-mid)',
-              fontSize: '15px',
-              fontWeight: 800,
-              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-              transition: 'all 0.2s',
-              border: 'none',
-              cursor: 'pointer',
-            }}>
+            <button
+              onClick={() => setWriteOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '14px 28px',
+                borderRadius: 'var(--radius-lg)',
+                background: 'white',
+                color: 'var(--forest-mid)',
+                fontSize: '15px',
+                fontWeight: 800,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                transition: 'all 0.2s',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
+              onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+            >
               ✍️ 후기 작성하기
             </button>
           </div>
         </div>
       </div>
     </section>
+
+    {/* Review Write Modal */}
+    {writeOpen && (
+      <div
+        style={{
+          position: 'fixed', inset: 0, zIndex: 2000,
+          background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.2s ease',
+          padding: '20px',
+        }}
+        onClick={() => setWriteOpen(false)}
+      >
+        <div
+          style={{
+            background: 'white', borderRadius: '24px',
+            padding: '40px', width: '100%', maxWidth: '520px',
+            animation: 'scaleIn 0.25s var(--ease-spring)',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
+            maxHeight: '90vh', overflowY: 'auto',
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Modal header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+            <div>
+              <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--forest)', marginBottom: '4px' }}>후기 작성하기</h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>소중한 경험을 다른 캠퍼들과 나눠보세요 ✨</p>
+            </div>
+            <button
+              onClick={() => setWriteOpen(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}
+            >
+              <X size={22} />
+            </button>
+          </div>
+
+          {/* Spot name */}
+          <div style={{ marginBottom: '18px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+              캠핑장 이름 *
+            </label>
+            <input
+              value={reviewForm.spotName}
+              onChange={e => setReviewForm(f => ({ ...f, spotName: e.target.value }))}
+              placeholder="방문한 캠핑장 이름을 입력하세요"
+              style={{
+                width: '100%', padding: '12px 16px',
+                border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)',
+                fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+                boxSizing: 'border-box', transition: 'border-color 0.2s',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'var(--sage)')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+            />
+          </div>
+
+          {/* Star rating */}
+          <div style={{ marginBottom: '18px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+              별점
+            </label>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <button
+                  key={star}
+                  onClick={() => setReviewForm(f => ({ ...f, rating: star }))}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: '4px', fontSize: '28px',
+                    transition: 'transform 0.15s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.2)')}
+                  onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  {star <= reviewForm.rating ? '⭐' : '☆'}
+                </button>
+              ))}
+              <span style={{ fontSize: '14px', color: 'var(--text-muted)', alignSelf: 'center', marginLeft: '4px', fontWeight: 600 }}>
+                {['', '별로에요', '아쉬워요', '보통이에요', '좋아요', '최고예요!'][reviewForm.rating]}
+              </span>
+            </div>
+          </div>
+
+          {/* Title */}
+          <div style={{ marginBottom: '18px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+              제목
+            </label>
+            <input
+              value={reviewForm.title}
+              onChange={e => setReviewForm(f => ({ ...f, title: e.target.value }))}
+              placeholder="한 줄로 표현한 캠핑 경험은?"
+              style={{
+                width: '100%', padding: '12px 16px',
+                border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)',
+                fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+                boxSizing: 'border-box', transition: 'border-color 0.2s',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'var(--sage)')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+            />
+          </div>
+
+          {/* Content */}
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+              후기 내용 *
+            </label>
+            <textarea
+              value={reviewForm.content}
+              onChange={e => setReviewForm(f => ({ ...f, content: e.target.value }))}
+              placeholder="시설, 자연환경, 분위기 등 솔직한 후기를 남겨주세요. 다른 캠퍼들에게 큰 도움이 됩니다!"
+              rows={5}
+              style={{
+                width: '100%', padding: '12px 16px',
+                border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)',
+                fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+                boxSizing: 'border-box', resize: 'vertical',
+                fontFamily: 'inherit', lineHeight: 1.6,
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'var(--sage)')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+            />
+          </div>
+
+          {/* Submit */}
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={() => setWriteOpen(false)}
+              style={{
+                flex: 1, padding: '14px',
+                background: 'var(--sand)', color: 'var(--text-secondary)',
+                borderRadius: 'var(--radius-md)', fontSize: '15px', fontWeight: 600,
+                border: '1.5px solid var(--border)', cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              취소
+            </button>
+            <button
+              onClick={handleWriteSubmit}
+              style={{
+                flex: 2, padding: '14px',
+                background: 'linear-gradient(135deg, var(--forest-mid), var(--sage))',
+                color: 'white', borderRadius: 'var(--radius-md)',
+                fontSize: '15px', fontWeight: 700,
+                border: 'none', cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(44,88,64,0.35)',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              ✍️ 후기 등록하기
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

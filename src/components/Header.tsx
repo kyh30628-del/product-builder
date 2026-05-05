@@ -21,12 +21,35 @@ export default function Header({ activeSection, onNavigate, onToast, onStartQuiz
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [signupOpen, setSignupOpen] = useState(false);
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
 
   const handleLogin = () => {
+    if (!loginEmail || !loginPassword) {
+      onToast('이메일과 비밀번호를 모두 입력해주세요.', 'error');
+      return;
+    }
+    // Dummy login for now
     setLoginOpen(false);
+    onToast(`'${loginEmail}'님, 환영합니다!`, 'success');
     setLoginEmail('');
     setLoginPassword('');
-    onToast('로그인 기능은 현재 준비 중입니다. 곧 서비스됩니다! 🚀', 'info');
+  };
+
+  const handleSignup = () => {
+    if (!signupName || !signupEmail || !signupPassword) {
+      onToast('이름, 이메일, 비밀번호를 모두 입력해주세요.', 'error');
+      return;
+    }
+    // Dummy signup for now
+    setSignupOpen(false);
+    onToast('회원가입이 완료되었습니다. 로그인해주세요!', 'success');
+    setSignupName('');
+    setSignupEmail('');
+    setSignupPassword('');
+    setLoginOpen(true);
   };
 
   useEffect(() => {
@@ -369,7 +392,7 @@ export default function Header({ activeSection, onNavigate, onToast, onStartQuiz
               <button
                 onClick={() => {
                   setLoginOpen(false);
-                  onToast('회원가입 기능은 현재 준비 중입니다. 곧 서비스됩니다! 🎉', 'info');
+                  setSignupOpen(true);
                 }}
                 style={{
                   background: 'none', border: 'none',
@@ -378,6 +401,137 @@ export default function Header({ activeSection, onNavigate, onToast, onStartQuiz
                 }}
               >
                 회원가입
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Signup Modal */}
+      {signupOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: 'fadeIn 0.2s ease',
+          }}
+          onClick={() => setSignupOpen(false)}
+        >
+          <div
+            style={{
+              background: 'white', borderRadius: '24px',
+              padding: '40px', width: '100%', maxWidth: '420px', margin: '20px',
+              animation: 'scaleIn 0.25s var(--ease-spring)',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '24px' }}>⛺</span>
+                <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--forest)' }}>CampNest 회원가입</h2>
+              </div>
+              <button
+                onClick={() => setSignupOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                이름
+              </label>
+              <input
+                type="text"
+                value={signupName}
+                onChange={e => setSignupName(e.target.value)}
+                placeholder="홍길동"
+                style={{
+                  width: '100%', padding: '12px 16px',
+                  border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)',
+                  fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+                  boxSizing: 'border-box', transition: 'border-color 0.2s',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--sage)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                이메일
+              </label>
+              <input
+                type="email"
+                value={signupEmail}
+                onChange={e => setSignupEmail(e.target.value)}
+                placeholder="example@email.com"
+                style={{
+                  width: '100%', padding: '12px 16px',
+                  border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)',
+                  fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+                  boxSizing: 'border-box', transition: 'border-color 0.2s',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--sage)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              />
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                비밀번호
+              </label>
+              <input
+                type="password"
+                value={signupPassword}
+                onChange={e => setSignupPassword(e.target.value)}
+                placeholder="비밀번호 입력"
+                onKeyDown={e => e.key === 'Enter' && handleSignup()}
+                style={{
+                  width: '100%', padding: '12px 16px',
+                  border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)',
+                  fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
+                  boxSizing: 'border-box', transition: 'border-color 0.2s',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--sage)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              />
+            </div>
+
+            <button
+              onClick={handleSignup}
+              style={{
+                width: '100%', padding: '14px',
+                background: 'linear-gradient(135deg, var(--forest-mid), var(--sage))',
+                color: 'white', borderRadius: 'var(--radius-md)',
+                fontSize: '15px', fontWeight: 700,
+                boxShadow: '0 4px 16px rgba(44,88,64,0.35)',
+                border: 'none', cursor: 'pointer', marginBottom: '14px',
+                transition: 'transform 0.2s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              회원가입
+            </button>
+
+            <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
+              이미 계정이 있으신가요?{' '}
+              <button
+                onClick={() => {
+                  setSignupOpen(false);
+                  setLoginOpen(true);
+                }}
+                style={{
+                  background: 'none', border: 'none',
+                  color: 'var(--forest-mid)', fontWeight: 700,
+                  cursor: 'pointer', fontSize: '13px',
+                }}
+              >
+                로그인
               </button>
             </div>
           </div>

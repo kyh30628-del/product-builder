@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ShoppingCart, Heart, Star, TrendingUp, Zap, Filter, ChevronRight, Package2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ShoppingCart, Heart, ChevronRight } from 'lucide-react';
+import { ToastFn } from '../App';
 
 interface Product {
   id: number;
@@ -60,15 +61,24 @@ function StarRating({ rating, small }: { rating: number; small?: boolean }) {
   );
 }
 
-export default function ProductsSection() {
+export default function ProductsSection({ onToast }: { onToast?: ToastFn }) {
   const [activeCategory, setActiveCategory] = useState('전체');
   const [activeSort, setActiveSort] = useState('인기순');
   const [cart, setCart] = useState<Set<number>>(new Set());
   const [liked, setLiked] = useState<Set<number>>(new Set());
 
-  const filtered = activeCategory === '전체'
-    ? products
-    : products.filter(p => p.category === activeCategory);
+  const filtered = useMemo(() => {
+    const base = activeCategory === '전체'
+      ? [...products]
+      : products.filter(p => p.category === activeCategory);
+    switch (activeSort) {
+      case '낮은가격순': return base.sort((a, b) => a.price - b.price);
+      case '높은가격순': return base.sort((a, b) => b.price - a.price);
+      case '평점순': return base.sort((a, b) => b.rating - a.rating);
+      case '최신순': return base.filter(p => p.isNew).concat(base.filter(p => !p.isNew));
+      default: return base;
+    }
+  }, [activeCategory, activeSort]);
 
   const addToCart = (id: number) => {
     setCart(prev => {
@@ -334,24 +344,27 @@ export default function ProductsSection() {
 
         {/* Cart count floating */}
         {cart.size > 0 && (
-          <div style={{
-            position: 'fixed',
-            bottom: '32px',
-            right: '32px',
-            zIndex: 100,
-            background: 'linear-gradient(135deg, var(--forest), var(--sage))',
-            color: 'white',
-            borderRadius: 'var(--radius-full)',
-            padding: '14px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            boxShadow: '0 8px 32px rgba(26,56,40,0.4)',
-            cursor: 'pointer',
-            animation: 'scaleIn 0.3s var(--ease-spring)',
-            fontWeight: 700,
-            fontSize: '15px',
-          }}>
+          <div
+            onClick={() => onToast?.(`장바구니에 ${cart.size}개 상품이 있습니다. 결제 페이지는 준비 중!`, 'info')}
+            style={{
+              position: 'fixed',
+              bottom: '32px',
+              right: '32px',
+              zIndex: 100,
+              background: 'linear-gradient(135deg, var(--forest), var(--sage))',
+              color: 'white',
+              borderRadius: 'var(--radius-full)',
+              padding: '14px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              boxShadow: '0 8px 32px rgba(26,56,40,0.4)',
+              cursor: 'pointer',
+              animation: 'scaleIn 0.3s var(--ease-spring)',
+              fontWeight: 700,
+              fontSize: '15px',
+            }}
+          >
             <ShoppingCart size={18} />
             장바구니 {cart.size}개
             <span style={{
@@ -373,7 +386,11 @@ export default function ProductsSection() {
 
         {/* View all CTA */}
         <div style={{ textAlign: 'center' }}>
-          <button className="btn btn-primary btn-lg" style={{ gap: '10px' }}>
+          <button
+            className="btn btn-primary btn-lg"
+            style={{ gap: '10px' }}
+            onClick={() => onToast?.('전체 상품 페이지는 준비 중입니다. 곧 오픈됩니다! 🛍️', 'info')}
+          >
             전체 상품 보기
             <ChevronRight size={18} />
           </button>
